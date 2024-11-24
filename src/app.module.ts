@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { ProfileController } from './profile/profile.controller';
 
 @Module({
   imports: [AuthModule, UsersModule, MongooseModule.forRoot('mongodb+srv://rayane:Rayane02*+@cluster0.vas9j.mongodb.net/', {
@@ -15,7 +16,7 @@ import { UsersModule } from './users/users.module';
 
   }), 
   ],
-  controllers: [AppController],
+  controllers: [ProfileController],
   providers: [AppService],
 })
 export class AppModule { }
