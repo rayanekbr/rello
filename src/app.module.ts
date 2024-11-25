@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
@@ -19,6 +18,6 @@ import { ProfileController } from './profile/profile.controller';
     ),
   ],
   controllers: [ProfileController],
-  providers: [AppService],
+  providers: [],
 })
 export class AppModule {}

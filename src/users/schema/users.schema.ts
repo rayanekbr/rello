@@ -3,7 +3,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema() // Marks this as a Mongoose schema
+@Schema()
 export class User extends Document {
   @Prop({ required: true })
   name: string;
@@ -12,7 +12,7 @@ export class User extends Document {
   email: string;
 
   @Prop({ required: true })
-  password: string; // Hashed password will be stored
+  password: string;
 
   @Prop({ default: Date.now })
   createdAt: Date;
