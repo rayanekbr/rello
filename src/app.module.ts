@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { ProfileController } from './profile/profile.controller';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { UsersModule } from './users/users.module';
       },
     ),
   ],
-  controllers: [],
-  providers: [],
+  controllers: [ProfileController],
+  providers: [AppService],
 })
 export class AppModule {}
