@@ -3,9 +3,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ProfileController } from './profile/profile.controller';
+import { BoardsModule } from './boards/boards.module';
 
 @Module({
   imports: [
+    BoardsModule,
     AuthModule,
     UsersModule,
     MongooseModule.forRoot(

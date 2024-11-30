@@ -12,7 +12,7 @@ import { AuthController } from './auth.controller';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret:
-        'E_NYNT2EeLJ-7DzV7KEB3i4KZJV1oPSIdDemXH9TUWeJuYvUAWpCqj9zyZFleDPPfVddHEe9Fc6N0WPE12Oaqw',
+        'B1JhfY7XzK8eXz5W2vQ1j6oA4u2PZ8eXp2wUj7vM4x3gG2m5vP6yX9o2G3tG9a',
       signOptions: { expiresIn: '1h' },
     }),
   ],
