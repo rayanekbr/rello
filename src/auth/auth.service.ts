@@ -1,66 +1,75 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
-
-// Mock database or repository (replace with actual implementation)
-const mockDatabase: Array<{
-  id: number;
-  name: string;
-  email: string;
-  password: string;
-}> = [];
-let userIdCounter = 1;
+import { Injectable, HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { RegisterDto } from './dto/register-dto';
+import { LoginDto } from './dto/login-dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
-  async register(name: string, email: string, password: string) {
-    console.log('AuthService - Register:', { name, email });
+  generateJwtToken(payload: { userId: any; email: any; }) {
+    throw new Error('Method not implemented.');
+  }
+  validateUser(loginDto: LoginDto) {
+    throw new Error('Method not implemented.');
+  }
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-    const existingUser = mockDatabase.find((user) => user.email === email);
-    if (existingUser) {
-      throw new Error('Email is already registered');
-    }
+  async register(registerDto: RegisterDto) {
+    const { name, email, password } = registerDto;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await this.usersService.create({ name, email, password });
 
-    const newUser = {
-      id: userIdCounter++,
-      name,
-      email,
-      password: hashedPassword,
-    };
-    mockDatabase.push(newUser);
-
-    console.log('New user registered:', newUser);
-
-    return { id: newUser.id, name: newUser.name, email: newUser.email };
+    return { id: user.id, name: user.name, email: user.email };
   }
 
-  async login(email: string, password: string) {
-    console.log('AuthService - Login:', { email });
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
 
-    const user = mockDatabase.find((user) => user.email === email);
+    const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new Error('User not found');
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) {
-      throw new Error('Invalid password');
-    }
-
-    // Generate JWT token
-    const payload = { sub: user.id, email: user.email };
-    const token = jwt.sign(
-      payload,
-      'E_NYNT2EeLJ-7DzV7KEB3i4KZJV1oPSIdDemXH9TUWeJuYvUAWpCqj9zyZFleDPPfVddHEe9Fc6N0WPE12Oaqw',
-      { expiresIn: '1h' },
+    const isPasswordValid = await this.usersService.validatePassword(
+      password,
+      user.password,
     );
+    if (!isPasswordValid) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = this.jwtService.sign(payload);
 
     return {
-      user: { id: user.id, name: user.name, email: user.email },
-      accessToken: token,
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+      accessToken,
     };
+
+
   }
+
+  async decodeToken(token: string): Promise<any> {
+    try {
+      // Decode and verify the token
+      const decoded = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,  // Ensure the correct secret key is used
+      });
+  
+      return decoded;  // Return the decoded token payload if valid
+    } catch (error) {
+      // If token verification fails, throw Unauthorized exception
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+  
 }
