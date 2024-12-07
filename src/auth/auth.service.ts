@@ -1,5 +1,9 @@
-/* eslint-disable prettier/prettier */
-import { Injectable, HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register-dto';
 import { LoginDto } from './dto/login-dto';
@@ -7,12 +11,6 @@ import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
-  generateJwtToken(payload: { userId: any; email: any; }) {
-    throw new Error('Method not implemented.');
-  }
-  validateUser(loginDto: LoginDto) {
-    throw new Error('Method not implemented.');
-  }
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
@@ -54,22 +52,18 @@ export class AuthService {
       },
       accessToken,
     };
-
-
   }
 
   async decodeToken(token: string): Promise<any> {
     try {
-      // Decode and verify the token
       const decoded = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,  // Ensure the correct secret key is used
+        secret: process.env.JWT_SECRET,
       });
-  
-      return decoded;  // Return the decoded token payload if valid
+
+      return decoded;
     } catch (error) {
-      // If token verification fails, throw Unauthorized exception
+      console.error(error);
       throw new UnauthorizedException('Invalid token');
     }
   }
-  
 }

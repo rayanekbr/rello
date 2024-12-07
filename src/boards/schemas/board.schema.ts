@@ -1,34 +1,31 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Board extends Document {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true })
-  userId: string;
-
-  @Prop({ required: true })
-  owner: string; // User ID
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
+  owner: mongoose.Schema.Types.ObjectId; // The owner of the board
 
   @Prop({ default: [] })
-  members: { userId: string, role: string }[]; // Array of user IDs
+  members: { userId: mongoose.Types.ObjectId; role: string }[];
 
   @Prop({ default: 'Private' })
-  visibility: string; // 'Public' or 'Private'
+  visibility: string;
 
   @Prop({ default: '' })
-  description: string; // Short description of the board
-
-  @Prop({ default: '' })
-  background: string; // Background color/image (optional)
+  background: string;
 
   @Prop({ default: [] })
-  activity: { userId: string, action: string, timestamp: Date }[]; // Array to track actions on the board
+  activity: { userId: string; action: string; timestamp: Date }[]; // Activity log
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'List' }] })
+  lists: mongoose.Types.ObjectId[];
 
   @Prop({ default: '' })
-  shareableLink: string; // A unique link to share with others
+  shareableLink: string;
 }
 
 export const BoardSchema = SchemaFactory.createForClass(Board);
