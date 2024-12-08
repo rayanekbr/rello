@@ -2,14 +2,11 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { ProfileController } from './profile/profile.controller';
 import { BoardsModule } from './boards/boards.module';
+import { ListsModule } from './list/lists.module';
 
 @Module({
   imports: [
-    BoardsModule,
-    AuthModule,
-    UsersModule,
     MongooseModule.forRoot(
       'mongodb+srv://rayane:Rayane02*+@cluster0.vas9j.mongodb.net/',
       {
@@ -18,8 +15,12 @@ import { BoardsModule } from './boards/boards.module';
         },
       },
     ),
+    BoardsModule,
+    AuthModule,
+    UsersModule,
+    ListsModule,
   ],
-  controllers: [ProfileController],
+  controllers: [],
   providers: [],
 })
 export class AppModule {}

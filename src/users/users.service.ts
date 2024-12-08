@@ -81,4 +81,8 @@ export class UsersService {
   ): Promise<boolean> {
     return bcrypt.compare(plaintextPassword.trim(), hashedPassword);
   }
+
+  async findAll(): Promise<User[]> {
+    return this.userModel.find().exec();
+  }
 }
