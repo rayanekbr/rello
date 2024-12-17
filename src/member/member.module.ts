@@ -5,10 +5,11 @@ import { MemberService } from './member.service';
 import { MemberController } from './member.controller';
 import { Board, BoardSchema } from '../boards/schemas/board.schema';
 import { User, UserSchema } from '../users/schema/users.schema';
-import { AuthService } from '../auth/auth.service';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     MongooseModule.forFeature([
       { name: Member.name, schema: MemberSchema },
       { name: Board.name, schema: BoardSchema },
@@ -16,7 +17,7 @@ import { AuthService } from '../auth/auth.service';
     ]),
   ],
   controllers: [MemberController],
-  providers: [MemberService, AuthService],
+  providers: [MemberService],
   exports: [MemberService],
 })
 export class MemberModule {}

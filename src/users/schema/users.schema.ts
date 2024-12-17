@@ -14,6 +14,9 @@ export class User extends Document {
   @Prop({ required: true })
   password: string;
 
+  @Prop({ default: 'member' })
+  role: string;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 }

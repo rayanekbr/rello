@@ -1,5 +1,5 @@
 import { CreateBoardDto } from './dto/create-board.dto';
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Board } from './schemas/board.schema';
@@ -27,6 +27,4 @@ export class BoardsService {
   async findBoardsByOwner(userId: string): Promise<Board[]> {
     return this.boardModel.find({ owner: userId }).exec();
   }
-
- 
 }

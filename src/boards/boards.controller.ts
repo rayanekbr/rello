@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Headers, Param } from '@nestjs/common';
+import { Controller, Post, Get, Body, Headers } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { AuthService } from 'src/auth/auth.service';
@@ -30,6 +30,4 @@ export class BoardsController {
 
     return this.boardsService.findBoardsByOwner(ownerId);
   }
-  
-
 }

@@ -17,11 +17,18 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { name, email, password } = registerDto;
+    const { name, email, password, role } = registerDto;
 
-    const user = await this.usersService.create({ name, email, password });
+    const userRole = role || 'user';
 
-    return { id: user.id, name: user.name, email: user.email };
+    const user = await this.usersService.create({
+      name,
+      email,
+      password,
+      role: userRole,
+    });
+
+    return { name: user.name, email: user.email, role: user.role };
   }
 
   async login(loginDto: LoginDto) {
@@ -40,7 +47,7 @@ export class AuthService {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
 
-    const payload = { sub: user.id, email: user.email };
+    const payload = { sub: user.id, email: user.email, role: user.role };
     const accessToken = this.jwtService.sign(payload);
 
     return {
@@ -49,6 +56,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
       accessToken,
     };

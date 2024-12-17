@@ -15,8 +15,9 @@ export class UsersService {
     name: string;
     email: string;
     password: string;
+    role?: string;
   }): Promise<User> {
-    const { name, email, password } = userDto;
+    const { name, email, password, role } = userDto;
 
     const existingUser = await this.userModel.findOne({ email }).exec();
     if (existingUser) {
@@ -29,6 +30,7 @@ export class UsersService {
       name,
       email,
       password: hashedPassword,
+      role: role || 'member',
     });
 
     return newUser.save();
