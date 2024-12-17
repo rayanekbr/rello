@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { BoardsModule } from './boards/boards.module';
 import { ListsModule } from './list/lists.module';
+import { MemberModule } from './member/member.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ListsModule } from './list/lists.module';
     AuthModule,
     UsersModule,
     ListsModule,
+    MemberModule,
   ],
   controllers: [],
   providers: [],
