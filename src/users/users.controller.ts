@@ -1,4 +1,4 @@
-/* eslint-disable prettier/prettier */
+
 import {
   Controller,
   Get,
@@ -24,7 +24,7 @@ export class UsersController {
   async create(@Body() createUserDto: CreateUserDto): Promise<User> {
     return this.usersService.create(createUserDto);
   }
-
+  
   @Get()
   async findAll(): Promise<User[]> {
     return this.usersService.findAll();
@@ -51,5 +51,6 @@ export class UsersController {
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<{ message: string }> {
     return this.usersService.delete(id);
+    
   }
 }

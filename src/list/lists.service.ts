@@ -13,7 +13,7 @@ export class ListsService {
   constructor(
     @InjectModel(List.name) private readonly listModel: Model<List>,
     @InjectModel(Board.name) private readonly boardModel: Model<Board>, // To validate board ownership or membership
-  ) {}
+  ) { }
 
   async createList(
     name: string,
@@ -25,23 +25,15 @@ export class ListsService {
       throw new NotFoundException('Board not found');
     }
 
-    const isMember =
-      board.owner.toString() === userId ||
-      board.members.some((member) => member.toString() === userId);
-    if (!isMember) {
-      throw new ForbiddenException(
-        'You do not have permission to create a list on this board',
-      );
-    }
 
     const newList = new this.listModel({
       name,
       boardId,
+      closed: false,
     });
 
     const savedList = await newList.save();
 
-    board.lists.push(savedList._id as mongoose.Types.ObjectId);
     await board.save();
 
     return savedList;
@@ -49,5 +41,45 @@ export class ListsService {
 
   async getListsByBoard(boardId: string): Promise<List[]> {
     return this.listModel.find({ boardId }).exec();
+  }
+  // Add these methods to your ListsService
+
+  async updateList(
+    listId: string,
+    updateData: { name: string },
+    userId: string,
+  ): Promise<List> {
+    const list = await this.listModel.findById(listId);
+    if (!list) {
+      throw new NotFoundException('List not found');
+    }
+
+    // Check if user has permission to update this list
+    const board = await this.boardModel.findById(list.boardId);
+    if (!board) {
+      throw new NotFoundException('Board not found');
+    }
+
+
+    list.name = updateData.name;
+    return list.save();
+  }
+
+  async deleteList(listId: string, userId: string): Promise<void> {
+    const list = await this.listModel.findById(listId);
+    if (!list) {
+      throw new NotFoundException('List not found');
+    }
+
+    // Check if user has permission to delete this list
+    const board = await this.boardModel.findById(list.boardId);
+    if (!board) {
+      throw new NotFoundException('Board not found');
+    }
+
+
+    await board.save();
+
+    await this.listModel.findByIdAndDelete(listId);
   }
 }

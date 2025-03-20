@@ -7,25 +7,16 @@ export class Board extends Document {
   name: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
-  owner: mongoose.Schema.Types.ObjectId; // The owner of the board
-
-  @Prop({ default: [] })
-  members: { userId: mongoose.Types.ObjectId; role: string }[];
+  owner: mongoose.Schema.Types.ObjectId;
 
   @Prop({ default: 'Private' })
   visibility: string;
 
   @Prop({ default: '' })
   background: string;
-
-  @Prop({ default: [] })
-  activity: { userId: string; action: string; timestamp: Date }[]; // Activity log
-
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'List' }] })
-  lists: mongoose.Types.ObjectId[];
-
-  @Prop({ default: '' })
-  shareableLink: string;
+  
+  @Prop({ type: Date, default: null })
+  lastViewed: Date;
 }
 
 export const BoardSchema = SchemaFactory.createForClass(Board);

@@ -17,4 +17,4 @@ import { AuthModule } from 'src/auth/auth.module';
   controllers: [ListsController],
   providers: [ListsService],
 })
-export class ListsModule {}
+export class ListsModule { }

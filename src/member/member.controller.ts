@@ -16,21 +16,21 @@ export class MemberController {
   constructor(
     private readonly memberService: MemberService,
     private readonly authService: AuthService,
-  ) {}
+  ) { }
 
   // @UseGuards(JwtAuthGuard)
-  @Post(':boardId/invite')
-  async inviteMember(
-    @Headers('Authorization') auth: string,
-    @Param('boardId') boardId: string,
-    @Body('email') email: string,
-  ) {
-    const token = auth.split(' ')[1];
-    const userData = await this.authService.decodeToken(token);
-    const inviterId = userData.sub;
+  // @Post(':boardId/invite')
+  // async inviteMember(
+  //   @Headers('Authorization') auth: string,
+  //   @Param('boardId') boardId: string,
+  //   @Body('email') email: string,
+  // ) {
+  //   const token = auth.split(' ')[1];
+  //   const userData = await this.authService.decodeToken(token);
+  //   const inviterId = userData.sub;
 
-    return this.memberService.inviteMember(boardId, email, inviterId);
-  }
+  //   return this.memberService.inviteMember(boardId, email, inviterId);
+  // }
 
   @Post(':invitationId/accept')
   async acceptInvitation(

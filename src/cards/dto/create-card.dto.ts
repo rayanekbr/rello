@@ -1,26 +1,15 @@
-import { IsNotEmpty, IsOptional, IsString, IsArray, IsDateString } from 'class-validator';
-import { Types } from 'mongoose';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class CreateCardDto {
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   title: string;
 
-  @IsOptional()
   @IsString()
-  description?: string;
-
   @IsNotEmpty()
-  listId: Types.ObjectId;
+  listId: string;  // Use listId, not idList
 
+  @IsString()
   @IsNotEmpty()
-  boardId: Types.ObjectId;
-
-  @IsOptional()
-  @IsDateString()
-  dueDate?: string;
-
-  @IsOptional()
-  @IsArray()
-  labels?: string[];
+  boardId: string;
 }

@@ -16,29 +16,29 @@ export class MemberService {
     @InjectModel(Member.name) private readonly memberModel: Model<Member>,
     @InjectModel(Board.name) private readonly boardModel: Model<Board>,
     @InjectModel(User.name) private readonly userModel: Model<User>,
-  ) {}
+  ) { }
 
-  async inviteMember(
-    boardId: string,
-    email: string,
-    inviterId: string,
-  ): Promise<Member> {
-    const board = await this.validateBoardAndPermissions(boardId, inviterId);
+  // async inviteMember(
+  //   boardId: string,
+  //   email: string,
+  //   inviterId: string,
+  // ): Promise<Member> {
+  //   const board = await this.validateBoardAndPermissions(boardId, inviterId);
 
-    const existingMember = await this.memberModel.findOne({ boardId, email });
-    if (existingMember) {
-      throw new ConflictException(
-        'This email has already been invited or is a member.',
-      );
-    }
+  //   const existingMember = await this.memberModel.findOne({ boardId, email });
+  //   if (existingMember) {
+  //     throw new ConflictException(
+  //       'This email has already been invited or is a member.',
+  //     );
+  //   }
 
-    const user = await this.userModel.findOne({ email });
-    const newMember = user
-      ? await this.addExistingUserToBoard(board, user)
-      : await this.createPendingInvitation(board, email);
+  //   const user = await this.userModel.findOne({ email });
+  //   const newMember = user
+  //     ? await this.addExistingUserToBoard(board, user)
+  //     : await this.createPendingInvitation(board, email);
 
-    return newMember;
-  }
+  //   return newMember;
+  // }
 
   async acceptInvitation(
     invitationId: string,
@@ -69,27 +69,27 @@ export class MemberService {
 
   // ----------------- Private Helper Methods -----------------
 
-  private async validateBoardAndPermissions(
-    boardId: string,
-    inviterId: string,
-  ): Promise<Board> {
-    const board = await this.boardModel.findById(boardId).populate('members');
-    if (!board) throw new NotFoundException('Board not found.');
+  // private async validateBoardAndPermissions(
+  //   boardId: string,
+  //   inviterId: string,
+  // ): Promise<Board> {
+  //   const board = await this.boardModel.findById(boardId).populate('members');
+  //   if (!board) throw new NotFoundException('Board not found.');
 
-    const isAuthorized =
-      board.owner.toString() === inviterId ||
-      board.members.some(
-        (member: any) => member.userId?.toString() === inviterId,
-      );
+  //   const isAuthorized =
+  //     board.owner.toString() === inviterId ||
+  //     board.members.some(
+  //       (member: any) => member.userId?.toString() === inviterId,
+  //     );
 
-    if (!isAuthorized) {
-      throw new ForbiddenException(
-        'You are not authorized to invite members to this board.',
-      );
-    }
+  //   if (!isAuthorized) {
+  //     throw new ForbiddenException(
+  //       'You are not authorized to invite members to this board.',
+  //     );
+  //   }
 
-    return board;
-  }
+  //   return board;
+  // }
 
   private async addExistingUserToBoard(
     board: Board,

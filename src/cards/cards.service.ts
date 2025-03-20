@@ -4,13 +4,24 @@ import { Model } from 'mongoose';
 import { Card } from './schemas/card.schema';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
+import { List } from 'src/list/schema/lists.schema';
 
 @Injectable()
 export class CardsService {
-  constructor(@InjectModel(Card.name) private cardModel: Model<Card>) {}
+  constructor(@InjectModel(Card.name) private cardModel: Model<Card>, @InjectModel(List.name) private listModel: Model<List>) { }
 
   async create(createCardDto: CreateCardDto): Promise<Card> {
-    const newCard = new this.cardModel(createCardDto);
+    const list = await this.listModel.findById(createCardDto.listId).exec(); // Fix here: use listId instead of idList
+    if (!list) {
+      throw new NotFoundException('List not found');
+    }
+
+    const newCard = new this.cardModel({
+      title: createCardDto.title,  // Ensure you are using the correct name from DTO, e.g. title instead of name
+      listId: list._id,
+      boardId: list.boardId,  // Ensure list has the correct boardId
+    });
+
     return newCard.save();
   }
 
