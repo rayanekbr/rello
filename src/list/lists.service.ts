@@ -13,32 +13,42 @@ export class ListsService {
   constructor(
     @InjectModel(List.name) private readonly listModel: Model<List>,
     @InjectModel(Board.name) private readonly boardModel: Model<Board>, // To validate board ownership or membership
-  ) { }
+  ) {}
 
   async createList(
     name: string,
     boardId: string,
     userId: string,
   ): Promise<List> {
-    const board = await this.boardModel.findById(boardId);
+    const boardObjectId = new mongoose.Types.ObjectId(boardId);
+
+    const board = await this.boardModel.findById(boardObjectId);
     if (!board) {
       throw new NotFoundException('Board not found');
     }
 
+    if (board.userId && board.userId.toString() !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to add lists to this board',
+      );
+    }
 
     const newList = new this.listModel({
       name,
       boardId,
       closed: false,
+      userId,
     });
 
     const savedList = await newList.save();
 
+    // If you need to update the board when a list is added, do it here
+    // For example, if you have a listsCount field or something similar
+    // board.listsCount = (board.listsCount || 0) + 1;
     await board.save();
 
     return savedList;
   }
-
   async getListsByBoard(boardId: string): Promise<List[]> {
     return this.listModel.find({ boardId }).exec();
   }
@@ -60,7 +70,6 @@ export class ListsService {
       throw new NotFoundException('Board not found');
     }
 
-
     list.name = updateData.name;
     return list.save();
   }
@@ -76,7 +85,6 @@ export class ListsService {
     if (!board) {
       throw new NotFoundException('Board not found');
     }
-
 
     await board.save();
 

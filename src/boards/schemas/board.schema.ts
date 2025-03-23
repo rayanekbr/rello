@@ -6,17 +6,14 @@ export class Board extends Document {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
-  owner: mongoose.Schema.Types.ObjectId;
-
   @Prop({ default: 'Private' })
   visibility: string;
 
   @Prop({ default: '' })
   background: string;
-  
-  @Prop({ type: Date, default: null })
-  lastViewed: Date;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  userId: string;
 }
 
 export const BoardSchema = SchemaFactory.createForClass(Board);

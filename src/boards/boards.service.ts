@@ -1,7 +1,12 @@
 import { CreateBoardDto } from './dto/create-board.dto';
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { Board } from './schemas/board.schema';
 import { User } from 'src/users/schema/users.schema';
 import { List } from 'src/list/schema/lists.schema';
@@ -14,101 +19,151 @@ export class BoardsService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(List.name) private readonly listModel: Model<List>,
     @InjectModel(Card.name) private readonly cardModel: Model<Card>,
+  ) {}
 
-  ) { }
-
-  // ✅ Create a new board
-  async createBoard(createBoardDto: CreateBoardDto, userId: string): Promise<Board> {
+  async createBoard(
+    createBoardDto: CreateBoardDto,
+    userId: string,
+  ): Promise<Board> {
     const newBoard = new this.boardModel({
       ...createBoardDto,
-      owner: userId,
-      members: [{ userId, role: 'admin' }], // ✅ Assign user as admin
+      userId,
     });
     return newBoard.save();
   }
 
-  // ✅ Fetch all boards owned by a user
-  async findBoardsByOwner(userId: string): Promise<Board[]> {
-    return this.boardModel.find({ owner: userId }).exec();
+  async getBoards(userId: string): Promise<any[]> {
+    try {
+      const boards = await this.boardModel.find({ userId }).exec();
+
+      const enhancedBoards = [];
+
+      for (const board of boards) {
+        const boardId = board._id;
+
+        const lists = await this.listModel
+          .find({
+            boardId: boardId,
+          })
+          .exec();
+
+        const cards = await this.cardModel
+          .find({
+            boardId: boardId,
+          })
+          .exec();
+
+        enhancedBoards.push({
+          _id: board._id,
+          name: board.name,
+          visibility: board.visibility,
+          background: board.background,
+          userId: board.userId,
+          lists: lists,
+          cards: cards,
+        });
+      }
+
+      return enhancedBoards;
+    } catch (error: any) {
+      console.error(`Error fetching boards: ${error.message}`);
+      throw new InternalServerErrorException('Error fetching boards data');
+    }
   }
 
-  // ✅ Fetch a single board by ID
-  async getBoard(boardId: string, userId: string): Promise<Board> {
-    const board = await this.boardModel.findById(boardId).exec();
-    if (!board) {
-      throw new NotFoundException('Board not found');
-    }
+  async getBoardByName(boardName: string, userId: string): Promise<any> {
+    try {
+      const formattedBoardName = boardName
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 
-    return board;
+      const board = await this.boardModel.findOne({
+        name: formattedBoardName,
+        userId: new mongoose.Types.ObjectId(userId),
+      });
+
+      if (!board) {
+        throw new NotFoundException(`Board with name "${boardName}" not found`);
+      }
+
+      const boardObjectId = board._id;
+
+      const lists = await this.listModel
+        .find({ boardId: boardObjectId })
+        .exec();
+
+      const cards = await this.cardModel
+        .find({ boardId: boardObjectId })
+        .exec();
+
+      return {
+        _id: board._id,
+        name: board.name,
+        visibility: board.visibility,
+        background: board.background,
+        userId: board.userId,
+        lists: lists,
+        cards: cards,
+      };
+    } catch (error: any) {
+      console.error(`Error fetching board by name: ${error.message}`);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error fetching board data');
+    }
   }
 
-  // ✅ Update a board (Only the owner should be allowed)
-  async updateBoard(boardId: string, updateData: Partial<CreateBoardDto>, userId: string): Promise<Board> {
-    const board = await this.boardModel.findById(boardId).exec();
-    if (!board) {
-      throw new NotFoundException('Board not found');
+  async getBoardById(boardId: string, userId: string): Promise<any> {
+    try {
+      const boardObjectId = new mongoose.Types.ObjectId(boardId);
+
+      const board = await this.boardModel.findById(boardObjectId).exec();
+
+      if (!board) {
+        throw new NotFoundException(`Board with ID ${boardId} not found`);
+      }
+
+      let boardOwnerId: any = board.userId;
+
+      if (boardOwnerId instanceof Types.ObjectId) {
+        boardOwnerId = boardOwnerId.toString();
+      }
+
+      if (boardOwnerId && boardOwnerId !== userId) {
+        throw new ForbiddenException(
+          'You do not have permission to access this board',
+        );
+      }
+
+      // Fetch lists and cards
+      const lists = await this.listModel
+        .find({ boardId: boardObjectId })
+        .exec();
+
+      const cards = await this.cardModel
+        .find({ boardId: boardObjectId })
+        .exec();
+
+      return {
+        _id: board._id,
+        name: board.name,
+        visibility: board.visibility,
+        background: board.background,
+        userId: board.userId,
+        lists: lists,
+        cards: cards,
+      };
+    } catch (error: any) {
+      console.error(`Error fetching board: ${error.message}`);
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error fetching board data');
     }
-
-    // ✅ Only the owner can update
-    if (board.owner.toString() !== userId) {
-      throw new ForbiddenException('Only the owner can update this board');
-    }
-
-    Object.assign(board, updateData);
-    return board.save();
-  }
-
-  // ✅ Delete a board (Only the owner should be allowed)
-  async deleteBoard(boardId: string, userId: string): Promise<void> {
-    const board = await this.boardModel.findById(boardId).exec();
-    if (!board) {
-      throw new NotFoundException('Board not found');
-    }
-
-    // ✅ Only the owner can delete
-    if (board.owner.toString() !== userId) {
-      throw new ForbiddenException('Only the owner can delete this board');
-    }
-
-    await this.boardModel.deleteOne({ _id: boardId }).exec();
-  }
-
-  async getBoardDetails(boardId: string, userId: string): Promise<{ id: string; lists: List[]; cards: Card[] }> {
-    // Fetch the board and check permissions
-    const board = await this.boardModel.findById(boardId).exec();
-    if (!board) {
-      throw new NotFoundException('Board not found');
-    }
-
-    const lists = await this.listModel.find({ boardId }).exec();
-
-    // Fetch cards belonging to the board
-    // (Alternatively, you could fetch cards by listing the IDs of the lists.)
-    const cards = await this.cardModel.find({ boardId }).exec();
-
-    return {
-      id: board._id.toString(),
-      lists,
-      cards,
-    };
-  }
-  
- async markBoardAsRecentlyViewed(boardId: string): Promise<Board> {
-  const boardObjectId =new Types.ObjectId(boardId);  // Ensure `boardId` is converted to ObjectId
-  const board = await this.boardModel.findById(boardObjectId).exec();
-  if (!board) {
-    throw new NotFoundException('Board not found');
-  }
-
-  // Update the lastViewed field
-  board.lastViewed = new Date(); // Set the lastViewed to the current date
-  return board.save(); // Save the updated board
-}
-  async getRecentlyViewedBoard(boardId: string): Promise<Board> {
-    const board = await this.boardModel.findById(boardId).exec();
-    if (!board) {
-      throw new NotFoundException('Board not found');
-    }
-    return board;
   }
 }

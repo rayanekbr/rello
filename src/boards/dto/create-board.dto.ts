@@ -5,10 +5,6 @@ export class CreateBoardDto {
   name: string;
 
   @IsOptional()
-  @IsArray()
-  members: string[];
-
-  @IsOptional()
   @IsString()
   visibility?: string;
 
