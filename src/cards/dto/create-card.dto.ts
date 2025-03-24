@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateCardDto {
   @IsString()
@@ -7,9 +7,8 @@ export class CreateCardDto {
 
   @IsString()
   @IsNotEmpty()
-  listId: string;  // Use listId, not idList
+  listId: string;
 
-  @IsString()
-  @IsNotEmpty()
-  boardId: string;
+  @IsOptional()
+  dueComplete: boolean;
 }

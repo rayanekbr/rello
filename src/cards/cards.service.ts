@@ -8,18 +8,25 @@ import { List } from 'src/list/schema/lists.schema';
 
 @Injectable()
 export class CardsService {
-  constructor(@InjectModel(Card.name) private cardModel: Model<Card>, @InjectModel(List.name) private listModel: Model<List>) { }
+  constructor(
+    @InjectModel(Card.name) private cardModel: Model<Card>,
+    @InjectModel(List.name) private listModel: Model<List>,
+  ) {}
 
   async create(createCardDto: CreateCardDto): Promise<Card> {
-    const list = await this.listModel.findById(createCardDto.listId).exec(); // Fix here: use listId instead of idList
+    const list = await this.listModel
+      .findById(createCardDto.listId, { _id: 1, boardId: 1 })
+      .lean()
+      .exec();
     if (!list) {
       throw new NotFoundException('List not found');
     }
 
     const newCard = new this.cardModel({
-      title: createCardDto.title,  // Ensure you are using the correct name from DTO, e.g. title instead of name
+      title: createCardDto.title,
       listId: list._id,
-      boardId: list.boardId,  // Ensure list has the correct boardId
+      boardId: list.boardId,
+      dueComplete: createCardDto.dueComplete ?? false,
     });
 
     return newCard.save();
@@ -30,7 +37,11 @@ export class CardsService {
   }
 
   async findOne(id: string): Promise<Card> {
-    const card = await this.cardModel.findById(id).populate('listId').populate('boardId').exec();
+    const card = await this.cardModel
+      .findById(id)
+      .populate('listId')
+      .populate('boardId')
+      .exec();
     if (!card) {
       throw new NotFoundException(`Card with ID ${id} not found`);
     }
@@ -38,7 +49,9 @@ export class CardsService {
   }
 
   async update(id: string, updateCardDto: UpdateCardDto): Promise<Card> {
-    const updatedCard = await this.cardModel.findByIdAndUpdate(id, updateCardDto, { new: true }).exec();
+    const updatedCard = await this.cardModel
+      .findByIdAndUpdate(id, updateCardDto, { new: true })
+      .exec();
     if (!updatedCard) {
       throw new NotFoundException(`Card with ID ${id} not found`);
     }

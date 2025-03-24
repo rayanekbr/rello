@@ -7,20 +7,14 @@ export class Card extends Document {
   @Prop({ required: true })
   title: string;
 
-  @Prop()
-  description: string;
-
   @Prop({ type: Types.ObjectId, ref: 'List', required: true })
   listId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Board', required: true })
+  @Prop({ required: false })
+  dueComplete: boolean;
+
+  @Prop({ type: Types.ObjectId, ref: 'Board', required: false })
   boardId: Types.ObjectId;
-
-  @Prop()
-  dueDate: Date;
-
-  @Prop([String])
-  labels: string[];
 }
 
 export const CardSchema = SchemaFactory.createForClass(Card);
