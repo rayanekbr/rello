@@ -1,11 +1,17 @@
-import { IsOptional, IsString, IsArray } from 'class-validator';
+import { IsBoolean } from "class-validator";
 
-export class UpdateBoardDto {
+import { IsMongoId, IsOptional, IsString } from "class-validator";
+
+export class UpdateCardDto {
   @IsOptional()
   @IsString()
-  name?: string;
+  title?: string;
 
   @IsOptional()
-  @IsArray()
-  members: { userId: string, role: string }[];
+  @IsMongoId()
+  listId?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  dueComplete?: boolean;
 }

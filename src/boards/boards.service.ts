@@ -11,6 +11,7 @@ import { Board } from './schemas/board.schema';
 import { User } from 'src/users/schema/users.schema';
 import { List } from 'src/list/schema/lists.schema';
 import { Card } from 'src/cards/schemas/card.schema';
+import { UpdateCardDto } from './dto/update-board.dto';
 
 @Injectable()
 export class BoardsService {
