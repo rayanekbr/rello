@@ -14,7 +14,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async register(registerDto: RegisterDto) {
     const { name, email, password, role } = registerDto;
@@ -47,7 +47,7 @@ export class AuthService {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = { sub: user.id, email: user.email, role: user.role, name: user.name };
     const accessToken = this.jwtService.sign(payload);
 
     return {
@@ -64,13 +64,14 @@ export class AuthService {
 
   async decodeToken(token: string): Promise<any> {
     try {
+      console.log('Decoding token:', token);
       const decoded = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,
+        secret: 'B1JhfY7XzK8eXz5W2vQ1j6oA4u2PZ8eXp2wUj7vM4x3gG2m5vP6yX9o2G3tG9a',
       });
-
+      console.log('Decoded token:', decoded);
       return decoded;
     } catch (error) {
-      console.error(error);
+      console.error('Error decoding token:', error);
       throw new UnauthorizedException('Invalid token');
     }
   }
