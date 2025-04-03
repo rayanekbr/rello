@@ -21,7 +21,7 @@ export class BoardsController {
   constructor(
     private readonly boardsService: BoardsService,
     private readonly authService: AuthService,
-  ) {}
+  ) { }
 
   @Post()
   async createBoard(
@@ -69,5 +69,18 @@ export class BoardsController {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
     return this.boardsService.getBoardByName(formattedBoardName, userId);
+  }
+
+  @Put(':id')
+  async updateBoard(
+    @Param('id') boardId: string,
+    @Headers('Authorization') auth: string,
+    @Body() updateData: { background?: string }
+  ) {
+    const token = auth.split(' ')[1];
+    const userData = await this.authService.decodeToken(token);
+    const userId = userData.sub;
+
+    return this.boardsService.updateBoard(boardId, userId, updateData);
   }
 }

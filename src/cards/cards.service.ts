@@ -13,10 +13,10 @@ export class CardsService {
     @InjectModel(Card.name) private cardModel: Model<Card>,
     @InjectModel(List.name) private listModel: Model<List>,
     @InjectModel(Board.name) private boardModel: Model<Board>,
-  ) {}
+  ) { }
 
   async create(createCardDto: CreateCardDto, userId: string): Promise<Card> {
-    
+
     const list = await this.listModel
       .findById(createCardDto.listId, { _id: 1, boardId: 1 })
       .lean()
@@ -52,7 +52,7 @@ export class CardsService {
 
     const list = await this.listModel.findById(card.listId);
     const board = await this.boardModel.findById(list.boardId);
-    
+
     if (board.userId.toString() !== userId) {
       throw new ForbiddenException('You do not have permission to access this card');
     }
@@ -68,32 +68,52 @@ export class CardsService {
 
     const list = await this.listModel.findById(card.listId);
     const board = await this.boardModel.findById(list.boardId);
-    
+
     if (board.userId.toString() !== userId) {
       throw new ForbiddenException('You do not have permission to update this card');
     }
-  
+
     if (updateCardDto.listId) {
       const newList = await this.listModel
         .findById(updateCardDto.listId, { _id: 1 })
         .lean()
         .exec();
-      
+
       if (!newList) {
         throw new NotFoundException('Destination list not found');
       }
-      
+
       card.listId = new mongoose.Types.ObjectId(newList._id.toString());
     }
-  
+
     if (updateCardDto.title) {
       card.title = updateCardDto.title;
     }
-    
+
+    if (updateCardDto.content) {
+      card.content = updateCardDto.content;
+    }
+
+    if (updateCardDto.labels) {
+      card.labels = updateCardDto.labels;
+    }
+
     if (updateCardDto.dueComplete !== undefined) {
       card.dueComplete = updateCardDto.dueComplete;
     }
-    
+
+    if (updateCardDto.startDate) {
+      card.startDate = new Date(updateCardDto.startDate);
+    }
+
+    if (updateCardDto.dueDate) {
+      card.dueDate = new Date(updateCardDto.dueDate);
+    }
+
+    if (updateCardDto.reminder) {
+      card.reminder = updateCardDto.reminder;
+    }
+
     return card.save();
   }
 
@@ -105,11 +125,34 @@ export class CardsService {
 
     const list = await this.listModel.findById(card.listId);
     const board = await this.boardModel.findById(list.boardId);
-    
+
     if (board.userId.toString() !== userId) {
       throw new ForbiddenException('You do not have permission to delete this card');
     }
 
     await this.cardModel.findByIdAndDelete(id).exec();
   }
+  async addLabelToCard(cardId: string, labelId: string, userId: string): Promise<Card> {
+    const card = await this.findOne(cardId, userId);
+    if (!card) {
+      throw new NotFoundException('Card not found or access denied');
+    }
+
+    if (!card.labels.includes(labelId)) {
+      card.labels.push(labelId);
+    }
+
+    return card.save();
+  }
+
+  async removeLabelFromCard(cardId: string, labelId: string, userId: string): Promise<Card> {
+    const card = await this.findOne(cardId, userId);
+    if (!card) {
+      throw new NotFoundException('Card not found or access denied');
+    }
+
+    card.labels = card.labels.filter((id) => id !== labelId);
+    return card.save();
+  }
+
 }

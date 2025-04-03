@@ -1,43 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateLabelDto } from './dto/create-label.dto';
+import { Label, LabelDocument } from './schemas/label.schema';
 
 @Injectable()
 export class LabelsService {
-    private labels: any[] = [];
+    constructor(
+        @InjectModel(Label.name) private labelModel: Model<LabelDocument>,
+    ) { }
 
-    create(createLabelDto: CreateLabelDto) {
-        const label = {
-            id: Date.now().toString(),
-            ...createLabelDto,
-        };
-        this.labels.push(label);
+    async create(createLabelDto: CreateLabelDto): Promise<Label> {
+        const createdLabel = new this.labelModel(createLabelDto);
+        return createdLabel.save();
+    }
+
+    async findAll(): Promise<Label[]> {
+        return this.labelModel.find().exec();
+    }
+
+    async findOne(id: string): Promise<Label> {
+        const label = await this.labelModel.findById(id).exec();
+        if (!label) {
+            throw new NotFoundException(`Label with ID ${id} not found`);
+        }
         return label;
     }
 
-    findAll() {
-        return this.labels;
-    }
-
-    findOne(id: string) {
-        return this.labels.find(label => label.id === id);
-    }
-
-    update(id: string, updateLabelDto: CreateLabelDto) {
-        const index = this.labels.findIndex(label => label.id === id);
-        if (index !== -1) {
-            this.labels[index] = { ...this.labels[index], ...updateLabelDto };
-            return this.labels[index];
+    async update(id: string, updateLabelDto: CreateLabelDto): Promise<Label> {
+        const updatedLabel = await this.labelModel
+            .findByIdAndUpdate(id, updateLabelDto, { new: true })
+            .exec();
+        if (!updatedLabel) {
+            throw new NotFoundException(`Label with ID ${id} not found`);
         }
-        return null;
+        return updatedLabel;
     }
 
-    remove(id: string) {
-        const index = this.labels.findIndex(label => label.id === id);
-        if (index !== -1) {
-            const removed = this.labels[index];
-            this.labels.splice(index, 1);
-            return removed;
+    async remove(id: string): Promise<Label> {
+        const deletedLabel = await this.labelModel.findByIdAndDelete(id).exec();
+        if (!deletedLabel) {
+            throw new NotFoundException(`Label with ID ${id} not found`);
         }
-        return null;
+        return deletedLabel;
     }
 } 

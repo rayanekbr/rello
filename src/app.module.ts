@@ -6,6 +6,7 @@ import { BoardsModule } from './boards/boards.module';
 import { ListsModule } from './list/lists.module';
 import { MemberModule } from './member/member.module';
 import { CardsModule } from './cards/cards.module';
+import { LabelsModule } from './labels/labels.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CardsModule } from './cards/cards.module';
     ListsModule,
     MemberModule,
     CardsModule,
+    LabelsModule,
   ],
   controllers: [],
   providers: [],

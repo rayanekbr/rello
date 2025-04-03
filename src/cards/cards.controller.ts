@@ -79,4 +79,30 @@ export class CardsController {
     
     return this.cardsService.remove(id, userId);
   }  
+  @Put(':cardId/labels/:labelId')
+async addLabel(
+  @Param('cardId') cardId: string,
+  @Param('labelId') labelId: string,
+  @Headers('Authorization') auth: string
+) {
+  const token = auth.split(' ')[1];
+  const userData = await this.authService.decodeToken(token);
+  const userId = userData.sub;
+
+  return this.cardsService.addLabelToCard(cardId, labelId, userId);
+}
+
+@Delete(':cardId/labels/:labelId')
+async removeLabel(
+  @Param('cardId') cardId: string,
+  @Param('labelId') labelId: string,
+  @Headers('Authorization') auth: string
+) {
+  const token = auth.split(' ')[1];
+  const userData = await this.authService.decodeToken(token);
+  const userId = userData.sub;
+
+  return this.cardsService.removeLabelFromCard(cardId, labelId, userId);
+}
+
 }

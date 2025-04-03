@@ -1,33 +1,34 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { LabelsService } from './labels.service';
 import { CreateLabelDto } from './dto/create-label.dto';
+import { Label } from './schemas/label.schema';
 
 @Controller('labels')
 export class LabelsController {
     constructor(private readonly labelsService: LabelsService) { }
 
     @Post()
-    create(@Body() createLabelDto: CreateLabelDto) {
+    async create(@Body() createLabelDto: CreateLabelDto): Promise<Label> {
         return this.labelsService.create(createLabelDto);
     }
 
     @Get()
-    findAll() {
+    async findAll(): Promise<Label[]> {
         return this.labelsService.findAll();
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
+    async findOne(@Param('id') id: string): Promise<Label> {
         return this.labelsService.findOne(id);
     }
 
     @Patch(':id')
-    update(@Param('id') id: string, @Body() updateLabelDto: CreateLabelDto) {
+    async update(@Param('id') id: string, @Body() updateLabelDto: CreateLabelDto): Promise<Label> {
         return this.labelsService.update(id, updateLabelDto);
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
+    async remove(@Param('id') id: string): Promise<Label> {
         return this.labelsService.remove(id);
     }
 } 

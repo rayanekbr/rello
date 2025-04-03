@@ -20,7 +20,7 @@ export class BoardsService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(List.name) private readonly listModel: Model<List>,
     @InjectModel(Card.name) private readonly cardModel: Model<Card>,
-  ) {}
+  ) { }
 
   async createBoard(
     createBoardDto: CreateBoardDto,
@@ -52,6 +52,7 @@ export class BoardsService {
           .find({
             boardId: boardId,
           })
+          .select('_id title content order listId labels startDate dueDate reminder createdAt updatedAt')
           .exec();
 
         enhancedBoards.push({
@@ -96,6 +97,7 @@ export class BoardsService {
 
       const cards = await this.cardModel
         .find({ boardId: boardObjectId })
+        .select('_id title content order listId labels startDate dueDate reminder createdAt updatedAt')
         .exec();
 
       return {
@@ -145,6 +147,7 @@ export class BoardsService {
 
       const cards = await this.cardModel
         .find({ boardId: boardObjectId })
+        .select('_id title content order listId labels startDate dueDate reminder createdAt updatedAt')
         .exec();
 
       return {
@@ -165,6 +168,41 @@ export class BoardsService {
         throw error;
       }
       throw new InternalServerErrorException('Error fetching board data');
+    }
+  }
+
+  async updateBoard(
+    boardId: string,
+    userId: string,
+    updateData: { background?: string }
+  ): Promise<Board> {
+    try {
+      const board = await this.boardModel.findById(boardId).exec();
+
+      if (!board) {
+        throw new NotFoundException(`Board with ID ${boardId} not found`);
+      }
+
+      let boardOwnerId: any = board.userId;
+      if (boardOwnerId instanceof Types.ObjectId) {
+        boardOwnerId = boardOwnerId.toString();
+      }
+
+      if (boardOwnerId && boardOwnerId !== userId) {
+        throw new ForbiddenException('You do not have permission to update this board');
+      }
+
+      if (updateData.background) {
+        board.background = updateData.background;
+      }
+
+      return await board.save();
+    } catch (error: any) {
+      console.error(`Error updating board: ${error.message}`);
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error updating board data');
     }
   }
 }

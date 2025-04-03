@@ -9,6 +9,23 @@ export class CreateCardDto {
   @IsNotEmpty()
   listId: string;
 
+  @IsString()
+  @IsOptional()
+  content?: string;
+
   @IsOptional()
   dueComplete: boolean;
+
+  @IsOptional()
+  labels?: string[];
+
+  @IsOptional()
+  startDate?: string;
+
+  @IsOptional()
+  dueDate?: string;
+
+  @IsString()
+  @IsOptional()
+  reminder?: string;
 }
