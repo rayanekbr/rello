@@ -9,7 +9,7 @@ import * as bcrypt from 'bcrypt';
 export class UsersService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
-  ) {}
+  ) { }
 
   async create(userDto: {
     name: string;
