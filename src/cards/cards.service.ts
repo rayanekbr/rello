@@ -75,7 +75,7 @@ export class CardsService {
 
     if (updateCardDto.listId) {
       const newList = await this.listModel
-        .findById(updateCardDto.listId, { _id: 1 })
+        .findById(updateCardDto.listId, { _id: 1, boardId: 1 })
         .lean()
         .exec();
 
@@ -84,6 +84,7 @@ export class CardsService {
       }
 
       card.listId = new mongoose.Types.ObjectId(newList._id.toString());
+      card.boardId = new mongoose.Types.ObjectId(newList.boardId.toString());
     }
 
     if (updateCardDto.title) {
