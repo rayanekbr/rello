@@ -9,7 +9,7 @@ export class CardsController {
   constructor(
     private readonly cardsService: CardsService,
     private readonly authService: AuthService
-  ) {}
+  ) { }
 
   @Post()
   async create(
@@ -19,7 +19,7 @@ export class CardsController {
     const token = auth.split(' ')[1];
     const userData = await this.authService.decodeToken(token);
     const userId = userData.sub;
-    
+
     return this.cardsService.create(createCardDto, userId);
   }
 
@@ -28,7 +28,7 @@ export class CardsController {
     const token = auth.split(' ')[1];
     const userData = await this.authService.decodeToken(token);
     const userId = userData.sub;
-    
+
     return this.cardsService.findAll(userId);
   }
 
@@ -40,7 +40,7 @@ export class CardsController {
     const token = auth.split(' ')[1];
     const userData = await this.authService.decodeToken(token);
     const userId = userData.sub;
-    
+
     return this.cardsService.findOne(id, userId);
   }
 
@@ -70,39 +70,57 @@ export class CardsController {
     const token = auth.split(' ')[1];
     const userData = await this.authService.decodeToken(token);
     const userId = userData.sub;
-    
+
     // Check if the card exists and user has access
     const card = await this.cardsService.findOne(id, userId);
     if (!card) {
       throw new NotFoundException('Card not found or you do not have access');
     }
-    
+
     return this.cardsService.remove(id, userId);
-  }  
+  }
   @Put(':cardId/labels/:labelId')
-async addLabel(
-  @Param('cardId') cardId: string,
-  @Param('labelId') labelId: string,
-  @Headers('Authorization') auth: string
-) {
-  const token = auth.split(' ')[1];
-  const userData = await this.authService.decodeToken(token);
-  const userId = userData.sub;
+  async addLabel(
+    @Param('cardId') cardId: string,
+    @Param('labelId') labelId: string,
+    @Headers('Authorization') auth: string
+  ) {
+    const token = auth.split(' ')[1];
+    const userData = await this.authService.decodeToken(token);
+    const userId = userData.sub;
 
-  return this.cardsService.addLabelToCard(cardId, labelId, userId);
-}
+    return this.cardsService.addLabelToCard(cardId, labelId, userId);
+  }
 
-@Delete(':cardId/labels/:labelId')
-async removeLabel(
-  @Param('cardId') cardId: string,
-  @Param('labelId') labelId: string,
-  @Headers('Authorization') auth: string
-) {
-  const token = auth.split(' ')[1];
-  const userData = await this.authService.decodeToken(token);
-  const userId = userData.sub;
+  @Delete(':cardId/labels/:labelId')
+  async removeLabel(
+    @Param('cardId') cardId: string,
+    @Param('labelId') labelId: string,
+    @Headers('Authorization') auth: string
+  ) {
+    const token = auth.split(' ')[1];
+    const userData = await this.authService.decodeToken(token);
+    const userId = userData.sub;
 
-  return this.cardsService.removeLabelFromCard(cardId, labelId, userId);
-}
+    return this.cardsService.removeLabelFromCard(cardId, labelId, userId);
+  }
+
+  @Put(':cardId/move')
+  async moveCard(
+    @Param('cardId') cardId: string,
+    @Body() data: { targetListId: string; position: number },
+    @Headers('Authorization') auth: string
+  ) {
+    const token = auth.split(' ')[1];
+    const userData = await this.authService.decodeToken(token);
+    const userId = userData.sub;
+
+    const card = await this.cardsService.findOne(cardId, userId);
+    if (!card) {
+      throw new NotFoundException('Card not found or you do not have access');
+    }
+
+    return this.cardsService.moveCard(cardId, data.targetListId, data.position, userId);
+  }
 
 }
