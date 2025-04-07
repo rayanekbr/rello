@@ -156,4 +156,30 @@ export class CardsService {
     return card.save();
   }
 
+  async moveCard(cardId: string, targetListId: string, position: number, userId: string): Promise<Card> {
+    // Find the card and verify it exists
+    const card = await this.cardModel.findById(cardId);
+    if (!card) {
+      throw new NotFoundException('Card not found');
+    }
+
+    // Find the target list and verify it exists
+    const targetList = await this.listModel.findById(targetListId);
+    if (!targetList) {
+      throw new NotFoundException('Target list not found');
+    }
+
+    // Verify user has permission by checking board ownership
+    const board = await this.boardModel.findById(targetList.boardId);
+    if (board.userId.toString() !== userId) {
+      throw new ForbiddenException('You do not have permission to move this card');
+    }
+
+    // Update card's list and board IDs using string conversion
+    card.listId = new mongoose.Types.ObjectId(targetList._id.toString());
+    card.boardId = new mongoose.Types.ObjectId(targetList.boardId.toString());
+
+    // Save the updated card
+    return card.save();
+  }
 }

@@ -31,17 +31,18 @@ export class UsersService {
       email,
       password: hashedPassword,
       role: role || 'member',
+      members: [],
     });
 
     return newUser.save();
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userModel.findOne({ email }).exec();
+    return this.userModel.findOne({ email }).populate('members', '-password').exec();
   }
 
   async findById(id: string): Promise<User> {
-    const user = await this.userModel.findById(id).exec();
+    const user = await this.userModel.findById(id).populate('members', '-password').exec();
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
@@ -50,7 +51,7 @@ export class UsersService {
 
   async update(
     id: string,
-    updateDto: Partial<{ name: string; email: string; password: string }>,
+    updateDto: Partial<{ name: string; email: string; password: string; members: string[] }>,
   ): Promise<User> {
     const user = await this.findById(id);
 
@@ -66,6 +67,15 @@ export class UsersService {
     }
     if (updateDto.password) {
       user.password = await bcrypt.hash(updateDto.password, 10);
+    }
+    if (updateDto.members) {
+      // Verify all member IDs exist
+      const memberIds = updateDto.members;
+      const existingMembers = await this.userModel.find({ _id: { $in: memberIds } }).exec();
+      if (existingMembers.length !== memberIds.length) {
+        throw new HttpException('One or more member IDs are invalid', HttpStatus.BAD_REQUEST);
+      }
+      user.members = memberIds as any;
     }
 
     return user.save();
@@ -85,7 +95,19 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+    return this.userModel.find().populate('members', '-password').exec();
   }
 
+  async updateMembers(id: string, memberIds: string[]): Promise<User> {
+    const user = await this.findById(id);
+
+    // Verify all member IDs exist
+    const existingMembers = await this.userModel.find({ _id: { $in: memberIds } }).exec();
+    if (existingMembers.length !== memberIds.length) {
+      throw new HttpException('One or more member IDs are invalid', HttpStatus.BAD_REQUEST);
+    }
+
+    user.members = memberIds as any;
+    return user.save();
+  }
 }

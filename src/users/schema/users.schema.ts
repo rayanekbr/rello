@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 // src/users/schemas/user.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 @Schema()
 export class User extends Document {
@@ -20,8 +20,8 @@ export class User extends Document {
   @Prop({ default: Date.now })
   createdAt: Date;
 
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], default: [] })
+  members: User[];
 }
-
-
 
 export const UserSchema = SchemaFactory.createForClass(User);

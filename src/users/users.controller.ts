@@ -60,6 +60,15 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
+  @Put(':id/members')
+  @UseGuards(JwtAuthGuard)
+  async updateMembers(
+    @Param('id') id: string,
+    @Body() body: { members: string[] },
+  ): Promise<User> {
+    return this.usersService.updateMembers(id, body.members);
+  }
+
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<{ message: string }> {
     return this.usersService.delete(id);

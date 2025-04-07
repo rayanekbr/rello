@@ -79,6 +79,7 @@ export class CardsController {
 
     return this.cardsService.remove(id, userId);
   }
+
   @Put(':cardId/labels/:labelId')
   async addLabel(
     @Param('cardId') cardId: string,
@@ -105,22 +106,21 @@ export class CardsController {
     return this.cardsService.removeLabelFromCard(cardId, labelId, userId);
   }
 
-  @Put(':cardId/move')
+  @Put(':id/move')
   async moveCard(
-    @Param('cardId') cardId: string,
-    @Body() data: { targetListId: string; position: number },
+    @Param('id') cardId: string,
+    @Body() moveData: { targetListId: string; position: number },
     @Headers('Authorization') auth: string
   ) {
     const token = auth.split(' ')[1];
     const userData = await this.authService.decodeToken(token);
     const userId = userData.sub;
 
-    const card = await this.cardsService.findOne(cardId, userId);
-    if (!card) {
-      throw new NotFoundException('Card not found or you do not have access');
-    }
-
-    return this.cardsService.moveCard(cardId, data.targetListId, data.position, userId);
+    return this.cardsService.moveCard(
+      cardId,
+      moveData.targetListId,
+      moveData.position,
+      userId
+    );
   }
-
 }
