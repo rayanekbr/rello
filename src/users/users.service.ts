@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schema/users.schema';
 import * as bcrypt from 'bcrypt';
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class UsersService {
@@ -53,32 +54,53 @@ export class UsersService {
     id: string,
     updateDto: Partial<{ name: string; email: string; password: string; members: string[] }>,
   ): Promise<User> {
-    const user = await this.findById(id);
+    try {
+      if (updateDto.members) {
+        // Convert string IDs to ObjectIds
+        const memberObjectIds = updateDto.members.map(id => new mongoose.Types.ObjectId(id));
+        const userId = new mongoose.Types.ObjectId(id);
 
-    if (updateDto.name) user.name = updateDto.name;
-    if (updateDto.email) {
-      const emailExists = await this.userModel
-        .findOne({ email: updateDto.email })
-        .exec();
-      if (emailExists && emailExists.id !== id) {
-        throw new HttpException('Email is already in use', HttpStatus.CONFLICT);
-      }
-      user.email = updateDto.email;
-    }
-    if (updateDto.password) {
-      user.password = await bcrypt.hash(updateDto.password, 10);
-    }
-    if (updateDto.members) {
-      // Verify all member IDs exist
-      const memberIds = updateDto.members;
-      const existingMembers = await this.userModel.find({ _id: { $in: memberIds } }).exec();
-      if (existingMembers.length !== memberIds.length) {
-        throw new HttpException('One or more member IDs are invalid', HttpStatus.BAD_REQUEST);
-      }
-      user.members = memberIds as any;
-    }
+        // Update both users atomically
+        await Promise.all([
+          // Update the current user's members array
+          this.userModel.findByIdAndUpdate(
+            id,
+            { $addToSet: { members: { $each: memberObjectIds } } },
+            { new: true }
+          ),
+          // Update each member's members array to include the current user
+          this.userModel.updateMany(
+            { _id: { $in: memberObjectIds } },
+            { $addToSet: { members: userId } }
+          )
+        ]);
 
-    return user.save();
+        // Return the updated user with populated members
+        return this.userModel.findById(id).populate('members', '-password').exec();
+      } else {
+        // Handle other updates
+        const user = await this.findById(id);
+        if (updateDto.name) user.name = updateDto.name;
+        if (updateDto.email) {
+          const emailExists = await this.userModel
+            .findOne({ email: updateDto.email })
+            .exec();
+          if (emailExists && emailExists.id !== id) {
+            throw new HttpException('Email is already in use', HttpStatus.CONFLICT);
+          }
+          user.email = updateDto.email;
+        }
+        if (updateDto.password) {
+          user.password = await bcrypt.hash(updateDto.password, 10);
+        }
+
+        await user.save();
+        return this.userModel.findById(id).populate('members', '-password').exec();
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw new HttpException('Failed to update user', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async delete(id: string): Promise<{ message: string }> {
@@ -99,15 +121,31 @@ export class UsersService {
   }
 
   async updateMembers(id: string, memberIds: string[]): Promise<User> {
-    const user = await this.findById(id);
+    try {
+      // Convert IDs to ObjectIds
+      const userId = new mongoose.Types.ObjectId(id);
+      const memberObjectIds = memberIds.map(id => new mongoose.Types.ObjectId(id));
 
-    // Verify all member IDs exist
-    const existingMembers = await this.userModel.find({ _id: { $in: memberIds } }).exec();
-    if (existingMembers.length !== memberIds.length) {
-      throw new HttpException('One or more member IDs are invalid', HttpStatus.BAD_REQUEST);
+      // Update both users atomically
+      await Promise.all([
+        // Add members to user's array
+        this.userModel.findByIdAndUpdate(
+          userId,
+          { $addToSet: { members: { $each: memberObjectIds } } },
+          { new: true }
+        ),
+        // Add user to each member's array
+        this.userModel.updateMany(
+          { _id: { $in: memberObjectIds } },
+          { $addToSet: { members: userId } }
+        )
+      ]);
+
+      // Return the updated user with populated members
+      return this.userModel.findById(id).populate('members', '-password').exec();
+    } catch (error) {
+      console.error('Error updating members:', error);
+      throw new HttpException('Failed to update members', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    user.members = memberIds as any;
-    return user.save();
   }
 }

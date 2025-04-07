@@ -21,7 +21,7 @@ export class User extends Document {
   createdAt: Date;
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], default: [] })
-  members: User[];
+  members: mongoose.Types.ObjectId[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
